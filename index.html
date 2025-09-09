@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Rifa</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Rifa "El Gran Premio"</h1>
+            <p>¡Participa y gana fabulosos premios!</p>
+        </header>
+
+        <main>
+            <div class="tabs">
+                <button class="tab-link active" data-tab="tab-dashboard">Dashboard</button>
+                <button class="tab-link" data-tab="tab-gestion">Gestión de Rifas</button>
+                <button class="tab-link" data-tab="tab-venta">Venta de Boletos</button>
+                <button class="tab-link" data-tab="tab-participantes">Participantes</button>
+                <button class="tab-link" data-tab="tab-config">Configuración</button>
+            </div>
+
+            <div id="tab-dashboard" class="tab-content active">
+                <h2>Panel de Control General</h2>
+                <div id="dashboard-stats" class="stats-grid"></div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Top 5 Rifas por Recaudación</h3>
+                        <canvas id="top-rifas-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Estado General de Boletos</h3>
+                        <canvas id="boletos-status-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-gestion" class="tab-content">
+                <div class="sub-tabs">
+                    <button class="sub-tab-link active" data-subtab="sub-tab-lista-rifas">Rifas Activas</button>
+                    <button class="sub-tab-link" data-subtab="sub-tab-crear-rifa">Crear Nueva Rifa</button>
+                </div>
+
+                <div id="sub-tab-lista-rifas" class="sub-tab-content active">
+                    <h2>Rifas Activas</h2>
+                    <div id="lista-rifas"></div>
+                </div>
+
+                <div id="sub-tab-crear-rifa" class="sub-tab-content">
+                    <h2>Crear Nueva Rifa</h2>
+                    <section id="crear-rifa-container">
+                        <form id="form-crear-rifa">
+                            <div class="form-group">
+                                <label for="nombre-rifa">Nombre de la Rifa:</label>
+                                <input type="text" id="nombre-rifa" name="nombre-rifa" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Premios Principales:</label>
+                                <input type="text" id="premio-1" name="premio-1" placeholder="1er Lugar" required>
+                                <input type="text" id="premio-2" name="premio-2" placeholder="2do Lugar (opcional)" style="margin-top: 5px;">
+                                <input type="text" id="premio-3" name="premio-3" placeholder="3er Lugar (opcional)" style="margin-top: 5px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="costo-premios">Costo Total de los Premios:</label>
+                                <input type="number" step="0.01" id="costo-premios" name="costo-premios" placeholder="Ej: 1500" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="premio-extra">Premio Extra (para boletos especiales):</label>
+                                <input type="text" id="premio-extra" name="premio-extra" placeholder="Ej: Botella de vino, 500 pesos, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="cantidad-boletos">Cantidad de Boletos:</label>
+                                <input type="number" id="cantidad-boletos" name="cantidad-boletos" value="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="precio-boleto">Precio por Boleto:</label>
+                                <input type="number" step="0.01" id="precio-boleto" name="precio-boleto" value="10" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="precio-especial">Precio Boleto Especial:</label>
+                                <input type="number" step="0.01" id="precio-especial" name="precio-especial" value="20" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Asignación de Números Especiales:</label>
+                                <select name="metodo-especial" id="metodo-especial">
+                                    <option value="repetidos">Estándar (00, 11, 22...)</option>
+                                    <option value="aleatorio">Aleatorio</option>
+                                </select>
+                                <div id="cantidad-especiales-container" style="display: none; margin-top: 10px;">
+                                    <label for="cantidad-especiales">Cantidad de Números Especiales Aleatorios:</label>
+                                    <input type="number" id="cantidad-especiales" name="cantidad-especiales" value="10">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha-rifa">Fecha del Sorteo:</label>
+                                <input type="date" id="fecha-rifa" name="fecha-rifa" required >
+                            </div>
+                            <button type="submit" class="btn-crear-rifa">Crear Rifa</button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab-venta" class="tab-content">
+
+                <div class="sub-tabs">
+                    <button class="sub-tab-link active" data-subtab="sub-tab-vender">Vender Boletos</button>
+                    <button class="sub-tab-link" data-subtab="sub-tab-participantes-rifa">Participantes de la Rifa</button>
+                    <button class="sub-tab-link" data-subtab="sub-tab-sorteo">Realizar Sorteo</button>
+                </div>
+
+                <div id="sub-tab-vender" class="sub-tab-content active">
+                    <h2>Vender Boletos</h2>
+                    <section id="configuracion-rifa">
+                        <div class="form-group">
+                            <label for="selector-rifa-activa">Selecciona la Rifa:</label>
+                            <select id="selector-rifa-activa"></select>
+                        </div>
+                        <div id="info-rifa-activa" class="info-rifa-header" style="display: none;">
+                            <h3 id="nombre-rifa-activa"></h3>
+                            <p><strong>Premio Principal:</strong> <span id="premio-rifa-activa"></span></p>
+                            <p><strong>Total Recaudado:</strong> <span id="total-recaudado">--</span></p>
+                            <p><strong>Boletos Restantes:</strong> <span id="boletos-restantes">--</span></p>
+                        </div>
+                    </section>
+                    <section id="boletos-container">
+                        <div id="opciones-venta-container" style="display: none;">
+                            <form id="form-venta-avanzada">
+                                <div class="form-group">
+                                    <label for="cantidad-a-comprar">Venta Rápida (Aleatoria):</label>
+                                    <div class="venta-rapida-wrapper">
+                                        <input type="number" id="cantidad-a-comprar" name="cantidad-a-comprar" min="1" value="1" required>
+                                        <button type="button" id="btn-seleccion-aleatoria" class="btn-seleccion">Vender</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <hr class="divisor">
+                            <label>Selección Manual:</label>
+                            <div id="boletos-grid-manual"></div>
+                            <div id="resumen-compra"></div>
+                        </div>
+                        <!-- Contenedor para mostrar la factura/recibo después de la venta -->
+                        <div id="factura-container" style="display: none; margin-top: 20px;"></div>
+                    </section>
+                </div>
+
+                <div id="sub-tab-participantes-rifa" class="sub-tab-content">
+                    <h2>Participantes de esta Rifa</h2>
+                    <section id="participantes-container">
+                        <input type="text" id="search-participante" placeholder="Buscar por nombre o número...">
+                        <ul id="lista-participantes"></ul>
+                    </section>
+                </div>
+
+                <div id="sub-tab-sorteo" class="sub-tab-content">
+                    <h2>Realizar Sorteo</h2>
+                    <section id="sorteo-container">
+                        <button id="boton-sortear">¡Sortear Ganador!</button>
+                        <div id="ganador-display" style="display: none;"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="tab-participantes" class="tab-content">
+                <h2>Listado General de Participantes</h2>
+                <input type="text" id="search-global-participante" placeholder="Buscar por rifa, nombre, teléfono o número...">
+                <div class="table-container">
+                    <table id="tabla-participantes">
+                        <thead>
+                            <tr>
+                                <th>Rifa</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Boleto(s)</th>
+                                <th>Monto Pagado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-participantes"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-config" class="tab-content">
+                <h2>Configuración del Sistema</h2>
+                <form id="form-config">
+                    <section>
+                        <h3>Datos de la Empresa</h3>
+                        <div class="form-group">
+                            <label for="config-nombre-empresa">Nombre de la Empresa:</label>
+                            <input type="text" id="config-nombre-empresa" name="nombreEmpresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="config-id-empresa">RNC o Identificación:</label>
+                            <input type="text" id="config-id-empresa" name="idEmpresa">
+                        </div>
+                        <div class="form-group">
+                            <label for="config-telefono-empresa">Teléfono:</label>
+                            <input type="tel" id="config-telefono-empresa" name="telefonoEmpresa">
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3>Opciones Generales</h3>
+                        <div class="form-group">
+                            <label for="config-moneda">Moneda:</label>
+                            <select id="config-moneda" name="moneda">
+                                <option value="DOP">DOP ($)</option>
+                                <option value="USD">USD (US$)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="config-codigo-pais">Código de País por Defecto (para WhatsApp):</label>
+                            <input type="text" id="config-codigo-pais" name="codigoPais" placeholder="Ej: 1 para RD, 52 para México">
+                            <p class="ayuda-texto">Se usará si el número de teléfono no incluye un código de país.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="config-reglas">Reglas y Avisos Legales:</label>
+                            <textarea id="config-reglas" name="reglas" rows="5" placeholder="Escribe aquí las reglas del sorteo, condiciones, avisos legales, etc. que aparecerán en el recibo."></textarea>
+                            <p class="ayuda-texto">Este texto se mostrará en la parte inferior de cada recibo de compra.</p>
+                        </div>
+                    </section>
+
+                    <button type="submit" class="btn-guardar-config">Guardar Configuración</button>
+                </form>
+                <div class="placeholder-section">Futuras Opciones de Apariencia...</div>
+                <div class="placeholder-section">Futuras Opciones de Integraciones...</div>
+            </div>
+        </main>
+    </div>
+    <script src="js/utils.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/participantes.js"></script>
+    <script src="js/rifas.js"></script>
+    <script src="js/venta.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
